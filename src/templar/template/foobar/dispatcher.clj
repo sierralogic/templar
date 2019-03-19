@@ -1,27 +1,42 @@
 (ns templar.template.foobar.dispatcher
   (:require [templar.core :as templar]))
 
-(def default-template-ns :templar.template.foobar.shout)
-
 (def template-id :foobars)
 
-(def template-fs [{:fn :foo}
-                  {:fn :bar}
-                  {:fn :ans}])
+(def template-fs [{:fn :foo
+                   :description "This is the foo function, meh."}
+                  {:fn :bar
+                   :args [{:name "x"
+                           :type :map
+                           :description "The x of the bar call."}
+                          {:name "y"
+                           :type :string
+                           :description "This y of the bar call."}
+                          {:name "z"
+                           :optional? true
+                           :type :long
+                           :description "This is the optional z for the bar call"}]
+                   :description "This is the bar function, blah."}
+                  {:fn :ans
+                   :args []
+                   :description "Answer, without the question.  Bring a towel."}])
 
 (templar/register! template-id template-fs)
 
-(when-let [check (templar/register-namespace! default-template-ns template-id)]
-  (println "WARNING: " check))
+(def default-template-ns :templar.template.foobar.shout)
 
 (defn namespace!
-  [ns]
-  (templar/register-namespace! ns template-id))
+  ([ns] (namespace! ns nil))
+  ([ns meta]
+   (templar/register-namespace! ns template-id meta)))
+
+(when-let [check (namespace! default-template-ns {:description "default foobars ns"})]
+  (println "WARNING: " check))
 
 (defn dispatch
   [fn & args]
   (apply templar/apply-template-function (concat [template-id fn] args)))
 
-(def foo "calls (foo x y z)" (partial dispatch :foo))
-(def bar "calls (bar x y)" (partial dispatch :bar))
-(def ans "calls (ans)" (partial dispatch :ans))
+(def foo (partial dispatch :foo))
+(def bar (partial dispatch :bar))
+(def ans (partial dispatch :ans))

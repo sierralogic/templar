@@ -158,6 +158,116 @@ and running `compliant` on the `dumb` namespace:
 
 ```
 
+## Registering Templates
+
+Templates are registered using the `templar.core/register!` function.
+
+```clojure
+(ns templar.template.foobar.dispatcher
+  (:require [templar.core :as templar]))
+
+(def template-id :foobars)
+
+(def template-fs [{:fn :foo
+                   :description "This is the foo function, meh."}
+                  {:fn :bar
+                   :args [{:name "x"
+                           :type :map
+                           :description "The x of the bar call."}
+                          {:name "y"
+                           :type :string
+                           :description "This y of the bar call."}
+                          {:name "z"
+                           :optional? true
+                           :type :long
+                           :description "This is the optional z for the bar call"}]
+                   :description "This is the bar function, blah."}
+                  {:fn :ans
+                   :args []
+                   :description "Answer, without the question.  Bring a towel."}])
+
+(templar/register! template-id template-fs)
+```
+
+The code registers the template `:foobars` with three (3) functions: `foo`, `bar`, and `ans`.
+
+The only required key in the template function maps is `:fn` which may be a keyword or string.
+
+## Associating Namespaces
+
+Templar also needs to know the namespace to use to resolve the functions in the template.
+
+```clojure
+(def default-template-ns :templar.template.foobar.shout)
+
+(defn namespace!
+  [ns]
+  (templar/register-namespace! ns template-id))
+
+(when-let [check (namespace! default-template-ns)]
+  (println "WARNING: " check))
+```
+
+The namespace MUST be compliant with the template to be associate/register to that template.
+
+The `templar/register-namespace!` function returns `nil` if the associate/registration of the namespace was successful.
+
+The `templar/register-namespace!` function returns the same response as the `compliant` function if the namespace is
+NOT compliant to the template.  If the namespace is not compliant, the namespace is NOT associated with the template and
+the pre-existing namespace (if any) associated/registered to the template remains active.
+
+## Template States
+
+The state of the templates may be pulled using the `templar/state` function:
+
+```clojure
+(templar/state)
+;=>
+{:foobars {:id :foobars,
+           :t [{:fn :foo, :description "This is the foo function, meh."}
+               {:fn :bar,
+                :args [{:name "x", :type :map, :description "The x of the bar call."}
+                       {:name "y", :type :string, :description "This y of the bar call."}
+                       {:name "z", :optional? true, :type :long, :description "This is the optional z for the bar call"}],
+                :description "This is the bar function, blah."}
+               {:fn :ans, :args [], :description "Answer, without the question.  Bring a towel."}],
+           :ns {:id :foobars, :ns :templar.template.foobar.shout, :m {:description "default foobars ns"}}}}
+```
+
+Individual template state may be accessed via the `templar/state-of` function: 
+
+```clojure
+(templar/state-of :foobars)
+;=>
+{:id :foobars,
+ :t [{:fn :foo, :description "This is the foo function, meh."}
+     {:fn :bar,
+      :args [{:name "x", :type :map, :description "The x of the bar call."}
+             {:name "y", :type :string, :description "This y of the bar call."}
+             {:name "z", :optional? true, :type :long, :description "This is the optional z for the bar call"}],
+      :description "This is the bar function, blah."}
+     {:fn :ans, :args [], :description "Answer, without the question.  Bring a towel."}],
+ :ns {:id :foobars, :ns :templar.template.foobar.shout, :m {:description "default foobars ns"}}}
+```
+
+## Registered Namespaces
+
+The registered namespaces associated with templates may be access via the `templar/registered-namespace` function:
+
+```clojure
+(templar/registered-namespace :foobars)
+;=> 
+{:id :foobars, :ns :templar.template.foobar.shout, :m {:description "default foobars ns"}}
+```
+
+To pull just the namespace of a template:
+
+```clojure
+(templar/namespace-of :foobars)
+;=> 
+:templar.template.foobar.shout
+```
+
 ## License
 
 Copyright © 2019 SierraLogic LLC

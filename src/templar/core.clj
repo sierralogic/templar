@@ -24,10 +24,10 @@
      opt)))
 
 (defn register!
-  ([id t] (register! id nil t))
-  ([id meta t]
-   (swap! registry assoc id {:id id :m meta :t t})))
-
+  ([id t] (register! id t nil))
+  ([id t meta]
+   (swap! registry assoc id (merge {:id id :t t}
+                                   (when meta {:m meta})))))
 
 (def function-cache "Cache of resolved/reified functions." (atom nil))
 
@@ -116,20 +116,51 @@
   (swap! registry dissoc id))
 
 (defn register-namespace!
-  [ns id]
-  (if-let [check (compliant ns id)]
-    check
-    (do
-      (swap! namespaces assoc id {:id id :ns ns})
-      nil)))
+  ([ns id] (register-namespace! ns id nil))
+  ([ns id meta]
+   (if-let [check (compliant ns id)]
+     check
+     (do
+       (swap! namespaces assoc id (merge {:id id :ns ns}
+                                         (when meta {:m meta})))
+       nil))))
 
-(defn registered-namespace-of
+(defn namespace-meta-of
+  [id]
+  (get (get @namespaces id) :m)
+  )
+(defn namespace-of
   [id]
   (get (get @namespaces id) :ns))
+
+(defn registered-namespace
+  [id]
+  (get @namespaces id))
 
 (defn apply-template-function
   [id fn & args]
   (when-let [t (template id)]
-    (when-let [ns (registered-namespace-of id)]
+    (when-let [ns (namespace-of id)]
       (when-let [f (resolve-function (->str ns) (->str fn))]
         (apply f args)))))
+
+(defn template-registry
+  []
+  @registry)
+
+(defn namespace-template-registry
+  []
+  @namespaces)
+
+(defn state-of
+  [id]
+  (when-let [entry (get @registry id)]
+    (merge (entry
+           (when-let [ns (registered-namespace id)]
+             {:ns ns}))))
+
+(defn state
+  []
+  (reduce #(assoc % %2 (state-of %2))
+             nil
+          (keys @registry)))
