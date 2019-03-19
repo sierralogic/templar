@@ -1,5 +1,5 @@
 (ns templar.template.foobar.dispatcher
-  (:require [templar.core :refer [template register! apply-template-function] :as templates]))
+  (:require [templar.core :as templar]))
 
 (def default-template-ns :templar.template.foobar.shout)
 
@@ -9,18 +9,18 @@
                   {:fn :bar}
                   {:fn :ans}])
 
-(register! template-id template-fs)
+(templar/register! template-id template-fs)
 
-(when-let [check (templates/register-namespace! default-template-ns template-id)]
+(when-let [check (templar/register-namespace! default-template-ns template-id)]
   (println "WARNING: " check))
 
 (defn namespace!
   [ns]
-  (templates/register-namespace! ns template-id))
+  (templar/register-namespace! ns template-id))
 
 (defn dispatch
   [fn & args]
-  (apply apply-template-function (concat [template-id fn] args)))
+  (apply templar/apply-template-function (concat [template-id fn] args)))
 
 (def foo "calls (foo x y z)" (partial dispatch :foo))
 (def bar "calls (bar x y)" (partial dispatch :bar))

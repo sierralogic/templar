@@ -105,7 +105,8 @@
   (if-let [template-fs (template template-id)]
     (reduce #(if-let [f (resolve-function (->str ns) (->str (get %2 :fn)))]
                %
-               (conj (or % []) {:message (str "Missing function " %2 ".")}))
+               (conj (or % []) {:message (str "Missing function " %2 ".")
+                                :fn (get %2 :fn)}))
             nil
             template-fs)
     [{:message (str "No template found in registries for id '" template-id "'.")}]))

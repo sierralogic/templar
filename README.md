@@ -9,7 +9,7 @@ Setup of template function `dispatcher` namespace.
 
 ```clojure
 (ns templar.template.foobar.dispatcher
-  (:require [templar.core :refer [template register! apply-template-function] :as templates]))
+  (:require [templar.core :as templar]))
 
 (def default-template-ns :templar.template.foobar.shout)
 
@@ -19,22 +19,23 @@ Setup of template function `dispatcher` namespace.
                   {:fn :bar}
                   {:fn :ans}])
 
-(register! template-id template-fs)
+(templar/register! template-id template-fs)
 
-(when-let [check (templates/register-namespace! default-template-ns template-id)]
+(when-let [check (templar/register-namespace! default-template-ns template-id)]
   (println "WARNING: " check))
 
 (defn namespace!
   [ns]
-  (templates/register-namespace! ns template-id))
+  (templar/register-namespace! ns template-id))
 
 (defn dispatch
   [fn & args]
-  (apply apply-template-function (concat [template-id fn] args)))
+  (apply templar/apply-template-function (concat [template-id fn] args)))
 
 (def foo "calls (foo x y z)" (partial dispatch :foo))
 (def bar "calls (bar x y)" (partial dispatch :bar))
 (def ans "calls (ans)" (partial dispatch :ans))
+
 ```
 
 Setting up two implementations, `shout` and `whisper`.
@@ -86,10 +87,13 @@ Results in the output:
 
 ```clojure
 (run)
+;=>
+
 SHOUTING!!!
 FOO (1 2 3 4)
 BAR (3 4 2 3 :A :B)
 ANSWER IS 42!
+
 whispering...
 pssst. foo (1 2 3 4)
 pssssst. bar (3 4 2 3 :a :b)
@@ -119,6 +123,39 @@ you can the following if `foo` expects two (2) arguments:
   "This is the docstring for foo that developers might use since the implemented `foo` might be in libary jar somewhere."
   [x y]
   (apply dispatch [:foo x y]))
+```
+
+## Template Compliance
+
+You can determine if a namespace is template compliant by calling the `(compliant ns template-id)`.
+
+If the call returns `nil`, then the namespace is compliant.
+
+```clojure
+(compliant :templar.template.foobar.shout :foobars)
+;=>
+nil
+```
+
+If the namespace is NOT compliant, then the call will return a vector of failed compliants (missing functions).
+
+```clojure
+(ns templar.template.foobar.dumb
+  (:require [clojure.string :as str]))
+
+(defn foo [& args] (println (str/lower-case (str "duh. foo " args))))
+(defn bar [& args] (println (str/lower-case (str "duh. bar " args))))
+;;; note lack of template :foobars function `ans`
+```
+
+and running `compliant` on the `dumb` namespace:
+
+```clojure
+(templates/compliant :templar.template.foobar.dumb :foobars)
+;=>
+[{:message "Missing function {:fn :ans}."
+  :fn :ans}]
+
 ```
 
 ## License
