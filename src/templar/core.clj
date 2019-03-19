@@ -122,14 +122,13 @@
       (swap! namespaces assoc id {:id id :ns ns})
       nil)))
 
-(defn namespace
+(defn registered-namespace-of
   [id]
   (get (get @namespaces id) :ns))
 
 (defn apply-template-function
   [id fn & args]
-  (println :apply-template-function :id id :fn fn :args args)
   (when-let [t (template id)]
-    (when-let [ns (namespace id)]
+    (when-let [ns (registered-namespace-of id)]
       (when-let [f (resolve-function (->str ns) (->str fn))]
         (apply f args)))))
