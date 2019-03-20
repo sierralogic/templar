@@ -1,6 +1,6 @@
 # templar
 
-Templar is a dependency injection libary that uses templates (groups of function names and descriptions) to 
+Templar is a dependency inversion library that uses templates (groups of function names and descriptions) to 
 dynamically resolve/load functions.
 
 ## Example
