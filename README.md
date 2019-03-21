@@ -3,6 +3,10 @@
 Templar is a dependency inversion library that uses templates (groups of function names and descriptions) to 
 dynamically resolve/load functions.
 
+## Build Status
+
+<img src="https://circleci.com/gh/sierralogic/templar.png?style=shield&circle-token=03c716fe6c3763d6e9330ee555d49f67be8cc9f0"/>
+
 ## Example
 
 Setup of template function `dispatcher` namespace.
