@@ -35,7 +35,7 @@ jobs:
           key: v1-dependencies-{{ checksum "project.clj" }}
 
       # run code coverage
-      - run: lein cloverage -e '.*spec.*' -e '.*util.*' -e 
+      #- run: lein cloverage -e '.*spec.*' -e '.*util.*' -e 
 
       # run tests!
       - run: lein test
