@@ -31,10 +31,11 @@
    (templar/register-namespace! ns template-id meta)))
 
 (when-let [check (namespace! default-template-ns {:description "default foobars ns"})]
-  (println "WARNING: " check))
+  (println "WARNING: " default-template-ns ":: " check))
 
 (defn dispatch
   [fn & args]
+  ;; (println :dispatch :fn fn :args args)
   (apply templar/apply-template-function (concat [template-id fn] args)))
 
 (def foo (partial dispatch :foo))
