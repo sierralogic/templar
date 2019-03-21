@@ -2,6 +2,7 @@
   (:require [templar.template.foobar.dispatcher :as foobar]))
 
 (defn run
+  "Example run to demonstrate templar impelemenation."
   []
   (foobar/namespace! :templar.template.foobar.shout)
   (println "SHOUTING!!!")

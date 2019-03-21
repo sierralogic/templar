@@ -1,22 +1,17 @@
 (ns templar.core)
 
-(defn ->str
-  [x]
-  (when x
-    (if (keyword? x)
-      (subs (str x) 1)
-      (str x))))
-
 (def namespaces (atom {}))
 
 (def registry (atom {}))
 
 (defn lookup
+  "Lookup given template id `id` and optional `opt`."
   ([id] (lookup id nil))
   ([id opt]
    (get @registry id opt)))
 
 (defn template
+  "Retrieve template with id `id` and optional `opt` if not found."
   ([id] (template id nil))
   ([id opt]
    (if-let [entry (lookup id opt)]
@@ -24,6 +19,7 @@
      opt)))
 
 (defn register!
+  "Register template `t` with template id `id` and optional metadata map `meta`."
   ([id t] (register! id t nil))
   ([id t meta]
    (swap! registry assoc id (merge {:id id :t t}
@@ -101,6 +97,10 @@
           f)))))
 
 (defn compliant
+  "Determines if namespace `ns` (string or keyword) is compliant with the
+  template with id `template-id`.
+  Returns `nil` if compliant.  If not compliant, returns a vector of non-compliant
+  map messages."
   [ns template-id]
   (if-let [template-fs (template template-id)]
     (reduce #(if-let [f (resolve-function (->str ns) (->str (get %2 :fn)))]
@@ -112,10 +112,13 @@
     [{:message (str "No template found in registries for id '" template-id "'.")}]))
 
 (defn unregister!
+  "Unregisters template with id `id`."
   [id]
   (swap! registry dissoc id))
 
 (defn register-namespace!
+  "Registers a namespace `ns` (string or keyword) to template with id `id`
+  and an optional metadata map `meta` for the namespace association."
   ([ns id] (register-namespace! ns id nil))
   ([ns id meta]
    (if-let [check (compliant ns id)]
@@ -126,18 +129,24 @@
        nil))))
 
 (defn namespace-meta-of
+  "Returns the metadata (if present) for namespace associate with template `id`."
   [id]
   (get (get @namespaces id) :m)
   )
 (defn namespace-of
+  "Returns the namespace (if present) associate/registered to template with id `id`."
   [id]
   (get (get @namespaces id) :ns))
 
 (defn registered-namespace
+  "Returns the namespace map entry (if present) associated/registered to template
+  with id `id`."
   [id]
   (get @namespaces id))
 
 (defn apply-template-function
+  "Applies the template function resolved for `fn` (string or keyword) for template
+  with id `id` and optional variadic functions `args`."
   [id fn & args]
   (when-let [t (template id)]
     (when-let [ns (namespace-of id)]
@@ -145,14 +154,18 @@
         (apply f args)))))
 
 (defn template-registry
+  "Returns the template registry atom @registry."
   []
   @registry)
 
 (defn namespace-template-registry
+  "Returns the namespace template registry atom @namespaces."
   []
   @namespaces)
 
 (defn state-of
+  "Generates the state of the template with id `id` with associated
+  namespaces and other state information."
   [id]
   (when-let [entry (get @registry id)]
     (merge entry
@@ -160,6 +173,7 @@
              {:ns ns}))))
 
 (defn state
+  "Generates the state of the registered templates."
   []
   (reduce #(assoc % %2 (state-of %2))
              nil
