@@ -155,7 +155,7 @@
 (defn state-of
   [id]
   (when-let [entry (get @registry id)]
-    (merge (entry
+    (merge entry
            (when-let [ns (registered-namespace id)]
              {:ns ns}))))
 
