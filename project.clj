@@ -1,4 +1,4 @@
-(defproject templar "0.1.0-SNAPSHOT"
+(defproject templar "0.1.1"
   :description "Templar is a logical grouping of functions into namespaces library for dependency injection."
   :url "http://sierralogic.com/post/templar"
   :license {:name "Eclipse Public License"
