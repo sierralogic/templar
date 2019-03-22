@@ -189,7 +189,7 @@ If the namespace is NOT compliant, then the call will return a vector of failed 
 and running `compliant` on the `dumb` namespace:
 
 ```clojure
-(templates/compliant :templar.template.foobar.dumb :foobars)
+(templar/compliant :templar.template.foobar.dumb :foobars)
 ;=>
 [{:message "Missing function {:fn :ans}."
   :fn :ans}]
