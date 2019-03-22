@@ -1,8 +1,8 @@
 (ns templar.core)
 
-(def namespaces (atom {}))
+(def namespaces "Namespaces registry that associates namespaces to templates." (atom {}))
 
-(def registry (atom {}))
+(def registry "Template registry" (atom {}))
 
 (defn lookup
   "Lookup given template id `id` and optional `opt`."
@@ -27,7 +27,7 @@
 
 (def function-cache "Cache of resolved/reified functions." (atom nil))
 
-(defn ->str
+(defn- ->str
   "Converts x to string.  If x is a keyword, then does a smart convert with slash between
   namespace and name:  ex. (-> :this) => this and (-> :foo/bar) => foo/bar"
   [x]
