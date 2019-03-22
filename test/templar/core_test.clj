@@ -20,11 +20,11 @@
 
 (deftest simple-core-test
   (testing "when someone shouts and whispers"
-    (foobar/namespace! :templar.template.foobar.shout)
+    (foobar/namespace! "templar.template.foobar.shout")
     (is (= "FOO (\"HI\")" (foobar/foo "hi")))
     (is (= "BAR (\"HELLO THERE\")" (foobar/bar "hello there")))
     (is (= "ANSWER IS 42!" (foobar/ans)))
-    (foobar/namespace! :templar.template.foobar.whisper)
+    (foobar/namespace! "templar.template.foobar.whisper")
     (is (= "pssst. foo (\"hi\")" (foobar/foo "Hi")))
     (is (= "pssssst. bar (\"hello\")" (foobar/bar "HellO")))
     (is (= "psst. the answer is 42." (foobar/ans)))))

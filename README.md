@@ -15,30 +15,52 @@ Setup of template function `dispatcher` namespace.
 (ns templar.template.foobar.dispatcher
   (:require [templar.core :as templar]))
 
-(def default-template-ns :templar.template.foobar.shout)
-
 (def template-id :foobars)
 
-(def template-fs [{:fn :foo}
-                  {:fn :bar}
-                  {:fn :ans}])
+(def template-fs [{:fn "foo"
+                   :description "This is the foo function, meh."}
+                  {:fn "bar"
+                   :args [{:name "x"
+                           :type :map
+                           :description "The x of the bar call."}
+                          {:name "y"
+                           :type :string
+                           :description "This y of the bar call."}
+                          {:name "z"
+                           :optional? true
+                           :type :long
+                           :description "This is the optional z for the bar call"}]
+                   :description "This is the bar function, blah."}
+                  {:fn "ans"
+                   :args []
+                   :description "Answer, without the question.  Bring a towel."}])
 
-(templar/register! template-id template-fs)
-
-(when-let [check (templar/register-namespace! default-template-ns template-id)]
-  (println "WARNING: " check))
+(def default-template-ns "templar.template.foobar.shout")
 
 (defn namespace!
-  [ns]
-  (templar/register-namespace! ns template-id))
+  "Register the namespace `ns` to :foobars template with optional metadata map `meta`."
+  ([ns] (namespace! ns nil))
+  ([ns meta]
+   (templar/register-namespace! ns template-id meta)))
+
+(defn init
+  "Initialize example foobar dispatcher."
+  []
+  (templar/register! template-id template-fs) ; register template with templar
+  (when-let [check (namespace! default-template-ns {:description "default foobars ns"})]
+    (println "WARNING: " default-template-ns ":: " check)))
 
 (defn dispatch
+  "Dispatch template function call `fn` for :foobars template with optional
+  function arguments `args`."
   [fn & args]
   (apply templar/apply-template-function (concat [template-id fn] args)))
 
-(def foo "calls (foo x y z)" (partial dispatch :foo))
-(def bar "calls (bar x y)" (partial dispatch :bar))
-(def ans "calls (ans)" (partial dispatch :ans))
+(def foo (partial dispatch :foo))
+(def bar (partial dispatch :bar))
+(def ans (partial dispatch :ans))
+
+(init)
 
 ```
 
@@ -50,9 +72,15 @@ Setting up two implementations, `shout` and `whisper`.
 (ns templar.template.foobar.shout
   (:require [clojure.string :as str]))
 
-(defn foo [& args] (println (str/upper-case (str "foo " args))))
-(defn bar [& args] (println (str/upper-case (str "bar " args))))
-(defn ans [& args] (println "ANSWER IS 42!"))
+(defn foo [& args] (let [x (str/upper-case (str "foo " args))]
+                     (println x)
+                     x))
+(defn bar [& args] (let [x (str/upper-case (str "bar " args))]
+                     (println x)
+                     x))
+(defn ans [& args] (let [x "ANSWER IS 42!"]
+                     (println x)
+                     x))
 ```
 
 `whisper`
@@ -61,9 +89,15 @@ Setting up two implementations, `shout` and `whisper`.
 (ns templar.template.foobar.whisper
   (:require [clojure.string :as str]))
 
-(defn foo [& args] (println (str/lower-case (str "pssst. foo " args))))
-(defn bar [& args] (println (str/lower-case (str "pssssst. bar " args))))
-(defn ans [& args] (println (str "psst. the answer is 42.")))
+(defn foo [& args] (let [x (str/lower-case (str "pssst. foo " args))]
+                     (println x)
+                     x))
+(defn bar [& args] (let [x (str/lower-case (str "pssssst. bar " args))]
+                     (println x)
+                     x))
+(defn ans [& args] (let [x "psst. the answer is 42."]
+                     (println x)
+                     x))
 ```
 
 And running the `example` function `run`:

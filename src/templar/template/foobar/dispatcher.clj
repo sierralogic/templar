@@ -3,9 +3,9 @@
 
 (def template-id :foobars)
 
-(def template-fs [{:fn :foo
+(def template-fs [{:fn "foo"
                    :description "This is the foo function, meh."}
-                  {:fn :bar
+                  {:fn "bar"
                    :args [{:name "x"
                            :type :map
                            :description "The x of the bar call."}
@@ -17,27 +17,33 @@
                            :type :long
                            :description "This is the optional z for the bar call"}]
                    :description "This is the bar function, blah."}
-                  {:fn :ans
+                  {:fn "ans"
                    :args []
                    :description "Answer, without the question.  Bring a towel."}])
 
-(templar/register! template-id template-fs)
-
-(def default-template-ns :templar.template.foobar.shout)
+(def default-template-ns "templar.template.foobar.shout")
 
 (defn namespace!
+  "Register the namespace `ns` to :foobars template with optional metadata map `meta`."
   ([ns] (namespace! ns nil))
   ([ns meta]
    (templar/register-namespace! ns template-id meta)))
 
-(when-let [check (namespace! default-template-ns {:description "default foobars ns"})]
-  (println "WARNING: " default-template-ns ":: " check))
+(defn init
+  "Initialize example foobar dispatcher."
+  []
+  (templar/register! template-id template-fs) ; register template with templar
+  (when-let [check (namespace! default-template-ns {:description "default foobars ns"})]
+    (println "WARNING: " default-template-ns ":: " check)))
 
 (defn dispatch
+  "Dispatch template function call `fn` for :foobars template with optional
+  function arguments `args`."
   [fn & args]
-  ;; (println :dispatch :fn fn :args args)
   (apply templar/apply-template-function (concat [template-id fn] args)))
 
 (def foo (partial dispatch :foo))
 (def bar (partial dispatch :bar))
 (def ans (partial dispatch :ans))
+
+(init)

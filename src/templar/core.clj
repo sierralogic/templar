@@ -31,10 +31,12 @@
   "Converts x to string.  If x is a keyword, then does a smart convert with slash between
   namespace and name:  ex. (-> :this) => this and (-> :foo/bar) => foo/bar"
   [x]
-  (if x
-    (if (keyword? x)
-      (str (if (namespace x) (str (namespace x) "/") "") (name x))
-      (str x))))
+  (when x
+    (if (string? x)
+      x
+      (if (keyword? x)
+        (str (if (namespace x) (str (namespace x) "/") "") (name x))
+        (str x)))))
 
 (defn clear-function-cache!
   "Clears the function cache."
@@ -152,6 +154,49 @@
     (when-let [ns (namespace-of id)]
       (when-let [f (resolve-function (->str ns) (->str fn))]
         (apply f args)))))
+
+(defn try-apply-template-function
+  "Applies the template function resolved for `fn` (string or keyword) for template
+  with id `id` and optional variadic functions `args`."
+  [id fn & args]
+  (let [try-r (merge {:template-id id
+                      :fn fn}
+                     (when args {:args args}))]
+    (if-let [t (template id)]
+      (if-let [ns (namespace-of id)]
+        (if-let [f (resolve-function (->str ns) (->str fn))]
+          (try
+            (assoc try-r :succsss (apply f args))
+            (catch Exception e
+              (assoc try-r :fail (str "Apply of template '" id "' of fn '" fn "' failed due to unresolvable function.")
+                           :error :exception
+                           :exception (ex-data e))))
+          (assoc try-r :fail (str "Apply of template '" id "' of fn '" fn "' failed due to unresolvable function.")
+                       :error :resolve))
+        (assoc try-r :fail (str "Apply of template '" id "' of fn '" fn "' failed due to missing/unregistered namespace.")
+                     :error :namespace))
+      (assoc try-r :fail (str "Apply of template '" id "' of fn '" fn "' failed due to missing/unregistered temmplate.")
+                   :error :template))))
+
+(defn success?
+  "Determines if try apply result `try-r` succeeded."
+  [try-r]
+  (contains? try-r :success))
+
+(defn fail?
+  "Determines if try apply result `try-r` failed."
+  [try-r]
+  (contains? try-r :fail))
+
+(defn success
+  "Extracts the successful response from a try apply result `try-r`."
+  [try-r]
+  (get try-r :success))
+
+(defn fail
+  "Extracts the fail response from a try apply result `try-r`."
+  [try-r]
+  (get try-r :fail))
 
 (defn template-registry
   "Returns the template registry atom @registry."
